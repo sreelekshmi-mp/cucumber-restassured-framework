@@ -1,10 +1,9 @@
 
 Feature: IIIF Image Metadata and Transformation
 
-  # Positive scenarios - successful metadata retrieval
   Scenario Outline: Retrieve IIIF image metadata successfully
     When I fetch IIIF metadata for object "<objectId>"
-    Then the iiif response status should be 200
+    Then the response status should be 200
     And it should include width in pixels
     And it should include height in pixels
 
@@ -14,10 +13,9 @@ Feature: IIIF Image Metadata and Transformation
       | ohGMs    |
 
 
-  # Positive scenarios - successful image retrieval with transformations
   Scenario Outline: Retrieve IIIF image with valid parameters
     When I fetch IIIF image in format "<format>" for object "<objectId>" with region "<region>" and size "<size>" and rotation "<rotation>" and quality "<quality>"
-    Then the iiif response status should be 200
+    Then the response status should be 200
     And the content type should be "<contentType>"
 
     Examples:
@@ -27,17 +25,15 @@ Feature: IIIF Image Metadata and Transformation
       | jpg    | ohGMs    | full   | 800,80 | 90       | gray    | image/jpeg   |
 
 
-  # Negative scenarios - metadata retrieval failures
   Scenario: Retrieve IIIF image metadata failure for invalid objects
     When I fetch IIIF metadata for object "invalid"
-    Then the iiif response status should be 404
+    Then the response status should be 404
 
 
-  # Negative scenarios - invalid image retrieval requests
   Scenario Outline: Retrieve IIIF image with invalid parameters
     When I fetch IIIF image in format "<format>" for object "<objectId>" with region "<region>" and size "<size>" and rotation "<rotation>" and quality "<quality>"
-    Then the iiif response status should be <status>
-    And the iiif error message should contain "<errorMessage>"
+    Then the response status should be <status>
+    And the error message should contain "<errorMessage>"
 
     Examples:
       | format | objectId | region | size | rotation | quality | status | errorMessage           |

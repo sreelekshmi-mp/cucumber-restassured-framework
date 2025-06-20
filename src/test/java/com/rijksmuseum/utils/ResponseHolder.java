@@ -2,8 +2,7 @@ package com.rijksmuseum.utils;
 
 import io.restassured.response.Response;
 
-public class ScenarioContext {
-
+public class ResponseHolder {
     private Response response;
 
     public Response getResponse() {
@@ -13,6 +12,4 @@ public class ScenarioContext {
     public void setResponse(Response response) {
         this.response = response;
     }
-
-    // You can add other shared data here if needed
 }

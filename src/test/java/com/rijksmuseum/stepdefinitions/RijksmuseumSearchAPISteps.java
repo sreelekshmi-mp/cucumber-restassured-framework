@@ -1,40 +1,34 @@
-
 package com.rijksmuseum.stepdefinitions;
 
-import com.rijksmuseum.utils.ScenarioContext;
 import io.cucumber.java.en.*;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 
 import com.rijksmuseum.utils.ConfigReader;
-import io.cucumber.java.en.When;
 import io.cucumber.datatable.DataTable;
 import io.restassured.specification.RequestSpecification;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rijksmuseum.utils.ResponseHolder;
 
+public class RijksmuseumSearchAPISteps {
 
-public class RijksmuseumSearchAPISteps  {
-
-//    public RijksmuseumSearchAPISteps(ScenarioContext scenarioContext) {
-//        super(scenarioContext);
-//    }
-
-    private Response response;
     private static final Logger logger = LoggerFactory.getLogger(RijksmuseumSearchAPISteps.class);
+    private final ResponseHolder responseHolder;
     private List<Map<String, String>> searchParameters;
+
+    public RijksmuseumSearchAPISteps(ResponseHolder responseHolder) {
+        this.responseHolder = responseHolder;
+    }
 
     @Given("the Rijksmuseum API base URL is set")
     public void the_rijksmuseum_api_base_url_is_set() {
@@ -42,18 +36,16 @@ public class RijksmuseumSearchAPISteps  {
         logger.info("Requesting URL: {}", RestAssured.baseURI);
     }
 
-    // Generic step for searching with a single parameter
     @When("I search artworks with {string} and {string}")
     public void searchArtworksWithParam(String parameter, String value) {
-        response = RestAssured
+        Response response = RestAssured
                 .given()
                 .queryParam(parameter, value)
                 .get("collection");
 
-
-        logger.info("Calling URL: " + RestAssured.baseURI + "collection?" + parameter + "=" + value);
+        responseHolder.setResponse(response);
+        logger.info("Calling URL: {}collection?{}={}", RestAssured.baseURI, parameter, value);
     }
-
 
     @When("I search artworks with parameters:")
     public void searchArtworksWithParameters(DataTable dataTable) {
@@ -76,32 +68,37 @@ public class RijksmuseumSearchAPISteps  {
                 request.queryParam(key, value);
             }
         }
-        response = request.get("collection");
+        Response response = request.get("collection");
+        responseHolder.setResponse(response);
     }
 
     @When("I search artworks with imageAvailable {string}")
     public void searchArtworksWithImageAvailable(String imageAvailable) {
-        response = RestAssured.given()
+        Response response = RestAssured.given()
                 .queryParam("imageAvailable", imageAvailable)
                 .get("collection");
+
+        responseHolder.setResponse(response);
     }
 
     @When("I request the next page using the pageToken from response")
     public void requestNextPageUsingPageToken() {
-        String nextUrl = response.jsonPath().getString("next.id");
+        Response currentResponse = responseHolder.getResponse();
+        String nextUrl = currentResponse.jsonPath().getString("next.id");
         if (nextUrl == null || !nextUrl.contains("pageToken=")) {
             throw new RuntimeException("No valid next pageToken found in the response");
         }
         String pageToken = nextUrl.split("pageToken=")[1];
-        response = RestAssured.given()
+        Response response = RestAssured.given()
                 .queryParam("pageToken", pageToken)
                 .get("collection");
+        responseHolder.setResponse(response);
     }
-
 
     @And("each response ID should contain parameters and values")
     public void validateSearchUrlContainsStoredParametersAndValues() {
-        String id = response.jsonPath().getString("partOf.id").toLowerCase()
+        Response currentResponse = responseHolder.getResponse();
+        String id = currentResponse.jsonPath().getString("partOf.id").toLowerCase()
                 .replace("%2a", "*")
                 .replace("%3f", "?");
 
@@ -112,44 +109,41 @@ public class RijksmuseumSearchAPISteps  {
             String encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8);
             String normalizedEncodedValue = encodedValue.toLowerCase().replace("%3f", "?");
 
-            assertTrue(String.format("Search URL '%s' missing parameter '%s'", id, parameter), id.contains(parameter));
-            assertTrue(String.format("Search URL '%s' missing value '%s' for parameter '%s'", id, normalizedEncodedValue, parameter)
+            assertThat(String.format("Search URL '%s' missing parameter '%s'", id, parameter), id.contains(parameter));
+            assertThat(String.format("Search URL '%s' missing value '%s' for parameter '%s'", id, normalizedEncodedValue, parameter)
                     , id.contains(normalizedEncodedValue));
         }
     }
 
-
-    @Then("the response status should be {int}")
-    public void verifyResponseStatusCode(int statusCode) {
-        assertThat(response.statusCode(), is(statusCode));
-    }
-
     @Then("each art object should have an id and type")
     public void validateIdAndType() {
-        response.then().body("orderedItems.id", everyItem(notNullValue()));
-        response.then().body("orderedItems.type", everyItem(notNullValue()));
+        Response currentResponse = responseHolder.getResponse();
+        currentResponse.then().body("orderedItems.id", everyItem(notNullValue()));
+        currentResponse.then().body("orderedItems.type", everyItem(notNullValue()));
     }
 
     @Then("each art object should have an id")
     public void validateId() {
-        response.then().body("orderedItems.id", everyItem(notNullValue()));
+        Response currentResponse = responseHolder.getResponse();
+        currentResponse.then().body("orderedItems.id", everyItem(notNullValue()));
     }
 
     @Then("each art object should have an id and creationDate")
     public void validateIdAndCreationDate() {
-        response.then().body("orderedItems.id", everyItem(notNullValue()));
-        // creationDate might not be directly available here; adapt as needed
+        Response currentResponse = responseHolder.getResponse();
+        currentResponse.then().body("orderedItems.id", everyItem(notNullValue()));
     }
 
     @Then("each art object should have a type and technique")
     public void validateTypeAndTechnique() {
-        response.then().body("orderedItems.type", everyItem(notNullValue()));
-        // technique field might need a different path or deeper validation, adjust accordingly
+        Response currentResponse = responseHolder.getResponse();
+        currentResponse.then().body("orderedItems.type", everyItem(notNullValue()));
     }
 
     @Then("the response should contain a list of object IDs")
     public void responseShouldContainObjectIDs() {
-        List<String> ids = response.jsonPath().getList("orderedItems.id");
+        Response currentResponse = responseHolder.getResponse();
+        List<String> ids = currentResponse.jsonPath().getList("orderedItems.id");
         assertThat("orderedItems should not be empty", ids, is(not(empty())));
         for (String id : ids) {
             assertThat("Each id should be a non-empty string", id, is(not(emptyOrNullString())));
@@ -158,7 +152,8 @@ public class RijksmuseumSearchAPISteps  {
 
     @Then("the image availability in results should be {string}")
     public void validateImageAvailabilityInResults(String imageAvailable) {
-        List<Object> images = response.jsonPath().getList("orderedItems.webImage.url");
+        Response currentResponse = responseHolder.getResponse();
+        List<Object> images = currentResponse.jsonPath().getList("orderedItems.webImage.url");
         boolean expectImage = Boolean.parseBoolean(imageAvailable);
 
         if (expectImage) {
@@ -170,39 +165,21 @@ public class RijksmuseumSearchAPISteps  {
 
     @Then("the next page token received is valid")
     public void validateNextPageToken() {
-        String nextUrl = response.jsonPath().getString("next.id");
+        Response currentResponse = responseHolder.getResponse();
+        String nextUrl = currentResponse.jsonPath().getString("next.id");
         if (nextUrl == null || !nextUrl.contains("pageToken=")) {
             throw new AssertionError("Next page URL is missing or does not contain a valid pageToken");
         }
     }
 
-
-    @Then("the error message should contain {string}")
-    public void validateErrorMessageContains(String expectedText) {
-        String contentType = response.getContentType();
-
-        logger.info("Received Content-Type: {}", contentType);
-
-        if (contentType.contains("application/json")) {
-            String errorMsg = response.jsonPath().getString("detail");
-            assertThat("Error message mismatch", errorMsg.toLowerCase(), containsString(expectedText.toLowerCase()));
-        } else {
-            String responseBody = response.getBody().asString();
-            assertThat("Expected error message to contain expected text",
-                    responseBody.toLowerCase(), containsString(expectedText.toLowerCase()));
-        }
-    }
-
-
-
     @And("the resolved objectNumbers should match pattern {string}")
     public void verifyObjectNumbersMatchPatternStrict(String pattern) {
+        Response currentResponse = responseHolder.getResponse();
 
         String regex = pattern.replace("*", ".*");
-
         logger.info("🔍 Verifying object numbers matching pattern '{}'", pattern);
 
-        List<String> itemIds = response.jsonPath().getList("orderedItems.id");
+        List<String> itemIds = currentResponse.jsonPath().getList("orderedItems.id");
 
         if (itemIds == null || itemIds.isEmpty()) {
             logger.warn("No 'orderedItems' found in the response. Skipping objectNumber pattern verification.");
@@ -212,32 +189,35 @@ public class RijksmuseumSearchAPISteps  {
         boolean overallMatchFound = false;
 
         for (String itemId : itemIds) {
-            logger.info("➡️ Processing item ID: {}", itemId);
+            logger.info("Processing item ID: {}", itemId);
 
             Response itemResponse = RestAssured.get(itemId);
-            assertEquals("Failed to fetch item details for ID: " + itemId + ". Status code: " +
-                    itemResponse.statusCode(), 200, itemResponse.statusCode());
+            assertThat("Failed to fetch item details for ID: " + itemId +
+                            ". Status code: " + itemResponse.statusCode(),
+                            itemResponse.statusCode(), is(200));
 
             List<Map<String, Object>> identifiedBy = itemResponse.jsonPath().getList("identified_by");
-            assertTrue("No 'identified_by' found for item ID: " + itemId,
+            assertThat("No 'identified_by' found for item ID: " + itemId,
                     identifiedBy != null && !identifiedBy.isEmpty());
 
             boolean matchFoundForThisItem = false;
 
             for (Map<String, Object> identifierBlock : identifiedBy) {
                 String content = (String) identifierBlock.get("content");
-                assertNotNull("Found identifier block with null content for item ID: " + itemId, content);
+                assertThat("Found identifier block with null content for item ID: " +
+                        itemId, content, notNullValue());
 
                 if (content.matches(regex)) {
-                    logger.info("✅ Found content matching pattern: {} for item ID: {}", content, itemId);
+                    logger.info("Found content matching pattern: {} for item ID: {}", content, itemId);
                     matchFoundForThisItem = true;
 
                     @SuppressWarnings("unchecked")
                     List<Map<String, String>> classifiedAsList =
                             (List<Map<String, String>>) identifierBlock.get("classified_as");
 
-                    assertTrue("No 'classified_as' found for identifier with content: '" + content +
-                            "' in item ID: " + itemId, classifiedAsList != null && !classifiedAsList.isEmpty());
+                    assertThat("No 'classified_as' found for identifier with content: '" + content +
+                                    "' in item ID: " + itemId,
+                            classifiedAsList != null && !classifiedAsList.isEmpty());
 
                     boolean objectNumberFound = false;
 
@@ -245,14 +225,15 @@ public class RijksmuseumSearchAPISteps  {
                         String classifierId = classifier.get("id");
                         if (classifierId == null || !classifierId.startsWith("https://id")) continue;
 
-                        logger.info("🔗 GET classified_as ID: {}", classifierId);
+                        logger.info("GET classified_as ID: {}", classifierId);
                         Response classifierResponse = RestAssured.get(classifierId);
 
-                        assertEquals("Failed to GET classified_as ID: " + classifierId + " with status: " +
-                                classifierResponse.statusCode(), 200, classifierResponse.statusCode());
+                        assertThat("Failed to GET classified_as ID: " + classifierId + " with status: " +
+                                        classifierResponse.statusCode(),
+                                classifierResponse.statusCode(), is(200));
 
                         List<Map<String, Object>> labels = classifierResponse.jsonPath().getList("identified_by");
-                        assertTrue("No 'identified_by' labels found for classified_as ID: " + classifierId,
+                        assertThat("No 'identified_by' labels found for classified_as ID: " + classifierId,
                                 labels != null && !labels.isEmpty());
 
                         for (Map<String, Object> label : labels) {
@@ -265,20 +246,22 @@ public class RijksmuseumSearchAPISteps  {
                         if (objectNumberFound) break;
                     }
 
-                    assertTrue("For content '" + content + "' in item " + itemId +
-                                    ", expected a classified_as with 'object number' content but none found.",
-                            objectNumberFound);
+                    assertThat("For content '" + content + "' in item " + itemId +
+                              ", expected a classified_as with 'object number' content but none found.",
+                              objectNumberFound);
                 }
             }
 
-            assertTrue("No 'identified_by' block with content matching pattern '" + pattern +
+            assertThat("No 'identified_by' block with content matching pattern '" + pattern +
                     "' found for item ID: " + itemId, matchFoundForThisItem);
 
             if (matchFoundForThisItem) {
                 overallMatchFound = true;
             }
         }
-        assertTrue("Expected at least one item with objectNumber matching pattern '" + pattern + "' but found none.",
-                overallMatchFound);
+
+        assertThat("Expected at least one item with objectNumber matching pattern '"
+                        + pattern + "' but found none.", overallMatchFound);
     }
 }
+

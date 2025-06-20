@@ -3,7 +3,6 @@ Feature: Rijksmuseum Search API Validation with Scenario Outlines
   Background:
     Given the Rijksmuseum API base URL is set
 
-  # Search by single text parameters like title and creator
   Scenario Outline: Search artworks and validate object IDs contain the search criteria
     When I search artworks with parameters:
       | parameter | value   |
