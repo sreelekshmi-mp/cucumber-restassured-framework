@@ -8,16 +8,27 @@ pipeline {
             }
         }
 
-        stage('Build & Test') {
+        stage('Build Docker Image') {
             steps {
-                sh 'mvn clean test'
+                script {
+                    docker.build('cucumber-restassured-tests:latest')
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    docker.image('cucumber-restassured-tests:latest').inside {
+                        sh 'mvn clean test'
+                    }
+                }
             }
         }
     }
 
     post {
         always {
-            // Publish test results
             junit '**/target/surefire-reports/*.xml'
         }
     }
