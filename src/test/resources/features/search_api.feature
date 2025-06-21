@@ -1,9 +1,9 @@
 Feature: Rijksmuseum Search API Validation with Scenario Outlines
 
   Background:
-    Given the Rijksmuseum API base URL is set
+    Given the search API base URL is set
 
-  Scenario Outline: Search artworks and validate object IDs contain the search criteria
+  Scenario Outline: Search artworks and check IDs contain the search parameter and value.
     When I search artworks with parameters:
       | parameter | value   |
       | <parameter> | <value> |
@@ -17,14 +17,12 @@ Feature: Rijksmuseum Search API Validation with Scenario Outlines
       | type          | painting           |
       | creationDate  | 16?                |
 
-
-
   Scenario Outline: Search tests for objectNumber field with wildcards
     When I search artworks with parameters:
       | parameter    | value     |
       | objectNumber | <value>   |
     Then the response status should be 200
-    Then each response ID should contain parameters and values
+    And each response ID should contain parameters and values
     And the resolved objectNumbers should match pattern "<value>"
 
     Examples:
@@ -34,7 +32,6 @@ Feature: Rijksmuseum Search API Validation with Scenario Outlines
       | AB-C-50 |
 
 
-  # Search with multiple parameters in one request, including duplicated parameters
   Scenario Outline: Search artworks by type, technique, and materials
     When I search artworks with parameters:
       | parameter | value       |
@@ -50,7 +47,6 @@ Feature: Rijksmuseum Search API Validation with Scenario Outlines
       | painting | embroidery | canvas    | oil paint |
 
 
-  # Search by image availability boolean parameter and test pagination
   Scenario Outline: Search artworks by image availability and verify pagination
     When I search artworks with imageAvailable "<imageAvailable>"
     Then the response status should be 200
@@ -62,7 +58,6 @@ Feature: Rijksmuseum Search API Validation with Scenario Outlines
       | true           |
       | false          |
 
-  # Search by objectNumber and creator combined
   Scenario Outline: Search artworks by objectNumber and creator combination
     When I search artworks with parameters:
       | parameter    | value             |
@@ -75,7 +70,6 @@ Feature: Rijksmuseum Search API Validation with Scenario Outlines
       | objectNumber | creator            |
       | SK-C-5*      | Rembrandt van Rijn |
 
-  # Negative test cases with invalid parameter values
   Scenario: Search artworks with invalid parameters should return errors
     When I search artworks with "invalidParam" and "invalidValue"
     Then the response status should be 400

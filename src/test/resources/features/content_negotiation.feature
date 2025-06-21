@@ -1,4 +1,4 @@
-Feature: Content Negotiation with Query String Arguments
+Feature: Rijksmuseum Content Negotiation with Query String Arguments
 
   Background:
     Given the Content negotiation API base URL is set
@@ -6,19 +6,21 @@ Feature: Content Negotiation with Query String Arguments
 
   Scenario Outline: Profile equal to specific object ID and profiles without media type returns correct profile data.
     When I send a GET request for object ID "<objectID>" with query parameter _profile="<profile>" and optional media type "<mediaType>"
-    Then the response Content-Type should match "<expectedContentType>"
-    And the response Link header should contain profile tokens "<expectedTokens>"
+    Then the response status should be 200
+    And the response Content-Type should match "<expectedContentType>"
+    And the response link header should contain "profile token" "<expectedTokens>"
 
     Examples:
 
-    | objectID  | profile     | expectedContentType  | expectedTokens             |
-    | 20024929  |  _alt       | application/json     | la,la-framed,oai_dc,edm    |
-    | 200100988 | schema      | application/ld+json  | la,la-framed,oai_dc,edm    |
+    | objectID  | profile     | expectedContentType     | expectedTokens             |
+    | 20024929  |  _alt       | application/json        | la,la-framed,oai_dc,edm    |
+    | 200100988 | schema      | application/ld+json     | la,la-framed,oai_dc,edm    |
 
 
   Scenario Outline: Resolver returns expected profile, media type, and relation in the Link header
     When I send a GET request for object ID "200107928" with query parameter _profile="<profile>" and optional media type "<mediaType>"
-    Then the response link header should contain "profile token" "<profile>"
+    Then the response status should be 200
+    And the response link header should contain "profile token" "<profile>"
     And the response link header should contain "media type" "<mediaType>"
     And the response link header should contain "relation" "<relation>"
 
@@ -32,8 +34,9 @@ Feature: Content Negotiation with Query String Arguments
 
   Scenario Outline: No profile or media type returns default profile and media type with Link header
     When I send a GET request for object ID ""
-    Then the response Content-Type should match "application/json"
-    And the response Link header should contain profile tokens "<expectedTokens>"
+    Then the response status should be 200
+    And the response Content-Type should match "application/json"
+    And the response link header should contain "profile token" "<expectedTokens>"
 
     Examples:
 

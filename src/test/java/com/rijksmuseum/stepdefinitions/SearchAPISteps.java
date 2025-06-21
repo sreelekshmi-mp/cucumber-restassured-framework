@@ -14,26 +14,25 @@ import io.restassured.specification.RequestSpecification;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rijksmuseum.utils.ResponseHolder;
 
-public class RijksmuseumSearchAPISteps {
+public class SearchAPISteps {
 
-    private static final Logger logger = LoggerFactory.getLogger(RijksmuseumSearchAPISteps.class);
+    private static final Logger logger = LoggerFactory.getLogger(SearchAPISteps.class);
     private final ResponseHolder responseHolder;
     private List<Map<String, String>> searchParameters;
 
-    public RijksmuseumSearchAPISteps(ResponseHolder responseHolder) {
+    public SearchAPISteps(ResponseHolder responseHolder) {
         this.responseHolder = responseHolder;
     }
 
-    @Given("the Rijksmuseum API base URL is set")
-    public void the_rijksmuseum_api_base_url_is_set() {
-        RestAssured.baseURI = ConfigReader.getProperty("searchApiBaseUrl") + "/search/";
-        logger.info("Requesting URL: {}", RestAssured.baseURI);
+    @Given("the search API base URL is set")
+    public void setSearchApiBaseUrl() {
+        RestAssured.baseURI = ConfigReader.getProperty("baseUrl") + "/search/";
+        logger.info("Requesting search API URL: {}", RestAssured.baseURI);
     }
 
     @When("I search artworks with {string} and {string}")
@@ -43,8 +42,8 @@ public class RijksmuseumSearchAPISteps {
                 .queryParam(parameter, value)
                 .get("collection");
 
-        responseHolder.setResponse(response);
         logger.info("Calling URL: {}collection?{}={}", RestAssured.baseURI, parameter, value);
+        responseHolder.setResponse(response);
     }
 
     @When("I search artworks with parameters:")
@@ -78,20 +77,25 @@ public class RijksmuseumSearchAPISteps {
                 .queryParam("imageAvailable", imageAvailable)
                 .get("collection");
 
+        logger.info("Calling URL: {}collection?imageAvailable={}", RestAssured.baseURI, imageAvailable);
         responseHolder.setResponse(response);
     }
 
     @When("I request the next page using the pageToken from response")
     public void requestNextPageUsingPageToken() {
         Response currentResponse = responseHolder.getResponse();
+
         String nextUrl = currentResponse.jsonPath().getString("next.id");
         if (nextUrl == null || !nextUrl.contains("pageToken=")) {
             throw new RuntimeException("No valid next pageToken found in the response");
         }
+
         String pageToken = nextUrl.split("pageToken=")[1];
         Response response = RestAssured.given()
                 .queryParam("pageToken", pageToken)
                 .get("collection");
+
+        logger.info("Calling URL: {}", nextUrl);
         responseHolder.setResponse(response);
     }
 
@@ -115,12 +119,6 @@ public class RijksmuseumSearchAPISteps {
         }
     }
 
-    @Then("each art object should have an id and type")
-    public void validateIdAndType() {
-        Response currentResponse = responseHolder.getResponse();
-        currentResponse.then().body("orderedItems.id", everyItem(notNullValue()));
-        currentResponse.then().body("orderedItems.type", everyItem(notNullValue()));
-    }
 
     @Then("each art object should have an id")
     public void validateId() {
@@ -128,49 +126,6 @@ public class RijksmuseumSearchAPISteps {
         currentResponse.then().body("orderedItems.id", everyItem(notNullValue()));
     }
 
-    @Then("each art object should have an id and creationDate")
-    public void validateIdAndCreationDate() {
-        Response currentResponse = responseHolder.getResponse();
-        currentResponse.then().body("orderedItems.id", everyItem(notNullValue()));
-    }
-
-    @Then("each art object should have a type and technique")
-    public void validateTypeAndTechnique() {
-        Response currentResponse = responseHolder.getResponse();
-        currentResponse.then().body("orderedItems.type", everyItem(notNullValue()));
-    }
-
-    @Then("the response should contain a list of object IDs")
-    public void responseShouldContainObjectIDs() {
-        Response currentResponse = responseHolder.getResponse();
-        List<String> ids = currentResponse.jsonPath().getList("orderedItems.id");
-        assertThat("orderedItems should not be empty", ids, is(not(empty())));
-        for (String id : ids) {
-            assertThat("Each id should be a non-empty string", id, is(not(emptyOrNullString())));
-        }
-    }
-
-    @Then("the image availability in results should be {string}")
-    public void validateImageAvailabilityInResults(String imageAvailable) {
-        Response currentResponse = responseHolder.getResponse();
-        List<Object> images = currentResponse.jsonPath().getList("orderedItems.webImage.url");
-        boolean expectImage = Boolean.parseBoolean(imageAvailable);
-
-        if (expectImage) {
-            assertThat(images, everyItem(notNullValue()));
-        } else {
-            assertThat(images, everyItem(nullValue()));
-        }
-    }
-
-    @Then("the next page token received is valid")
-    public void validateNextPageToken() {
-        Response currentResponse = responseHolder.getResponse();
-        String nextUrl = currentResponse.jsonPath().getString("next.id");
-        if (nextUrl == null || !nextUrl.contains("pageToken=")) {
-            throw new AssertionError("Next page URL is missing or does not contain a valid pageToken");
-        }
-    }
 
     @And("the resolved objectNumbers should match pattern {string}")
     public void verifyObjectNumbersMatchPatternStrict(String pattern) {
@@ -182,11 +137,10 @@ public class RijksmuseumSearchAPISteps {
         List<String> itemIds = currentResponse.jsonPath().getList("orderedItems.id");
 
         if (itemIds == null || itemIds.isEmpty()) {
-            logger.warn("No 'orderedItems' found in the response. Skipping objectNumber pattern verification.");
+            logger.warn("No 'orderedItems' found in the response." +
+                    "Skipping objectNumber pattern verification.");
             return;
         }
-
-        boolean overallMatchFound = false;
 
         for (String itemId : itemIds) {
             logger.info("Processing item ID: {}", itemId);
@@ -225,10 +179,10 @@ public class RijksmuseumSearchAPISteps {
                         String classifierId = classifier.get("id");
                         if (classifierId == null || !classifierId.startsWith("https://id")) continue;
 
-                        logger.info("GET classified_as ID: {}", classifierId);
+                        logger.info("Received classified_as ID: {}", classifierId);
                         Response classifierResponse = RestAssured.get(classifierId);
 
-                        assertThat("Failed to GET classified_as ID: " + classifierId + " with status: " +
+                        assertThat("Failed to receive classified_as ID: " + classifierId + " with status: " +
                                         classifierResponse.statusCode(),
                                 classifierResponse.statusCode(), is(200));
 
@@ -242,26 +196,15 @@ public class RijksmuseumSearchAPISteps {
                                 objectNumberFound = true;
                                 break;
                             }
-                        }
-                        if (objectNumberFound) break;
-                    }
+                        } if (objectNumberFound) break;
 
-                    assertThat("For content '" + content + "' in item " + itemId +
+                    } assertThat("For content '" + content + "' in item " + itemId +
                               ", expected a classified_as with 'object number' content but none found.",
                               objectNumberFound);
                 }
-            }
-
-            assertThat("No 'identified_by' block with content matching pattern '" + pattern +
+            } assertThat("No 'identified_by' block with content matching pattern '" + pattern +
                     "' found for item ID: " + itemId, matchFoundForThisItem);
-
-            if (matchFoundForThisItem) {
-                overallMatchFound = true;
-            }
         }
-
-        assertThat("Expected at least one item with objectNumber matching pattern '"
-                        + pattern + "' but found none.", overallMatchFound);
     }
 }
 

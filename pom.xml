@@ -28,14 +28,12 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Jackson Databind for JSON parsing -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
 
-        <!-- JUnit 4 for Cucumber Runner -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -44,7 +42,6 @@
         </dependency>
 
 
-        <!-- Cucumber Java -->
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>
@@ -52,7 +49,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Cucumber JUnit -->
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-junit</artifactId>
@@ -82,7 +78,6 @@
 
     <build>
         <plugins>
-            <!-- Maven Surefire plugin to run JUnit 5 tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

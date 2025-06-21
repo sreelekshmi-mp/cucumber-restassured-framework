@@ -1,11 +1,12 @@
+Feature: Rijksmuseum IIIF Image Metadata and Transformation
 
-Feature: IIIF Image Metadata and Transformation
+  Background:
+    Given the IIIF image API base URL is set
 
   Scenario Outline: Retrieve IIIF image metadata successfully
     When I fetch IIIF metadata for object "<objectId>"
     Then the response status should be 200
-    And it should include width in pixels
-    And it should include height in pixels
+    And It should include width and height in pixels
 
     Examples:
       | objectId |

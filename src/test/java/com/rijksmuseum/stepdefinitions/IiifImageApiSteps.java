@@ -14,7 +14,6 @@ import static org.hamcrest.Matchers.*;
 
 public class IiifImageApiSteps {
 
-    private final String baseUrl = ConfigReader.getProperty("iiifImageApiBaseUrl");
     private static final Logger logger = LoggerFactory.getLogger(IiifImageApiSteps.class);
     private final ResponseHolder responseHolder;
 
@@ -22,19 +21,26 @@ public class IiifImageApiSteps {
         this.responseHolder = responseHolder;
     }
 
+    @Given("the IIIF image API base URL is set")
+    public void setIiifImageApiBaseUrl() {
+        RestAssured.baseURI = ConfigReader.getProperty("iiifImageApiBaseUrl");
+        logger.info("Requesting IIIF image API URL: {}", RestAssured.baseURI);
+    }
+
     @When("I fetch IIIF metadata for object {string}")
     public void fetchIIIFMetadata(String objectId) {
-        String url = baseUrl + "/" + objectId + "/info.json";
-        logger.info("Requesting IIIF metadata URL: {}", url);
+        String path = "/" + objectId + "/info.json";
+        logger.info("Requesting IIIF Image API path: {}", path);
 
-        Response response = RestAssured.get(url);
+        Response response = RestAssured.given().get(path);
         responseHolder.setResponse(response);
     }
 
     @When("I fetch IIIF image in format {string} for object {string} with region {string} and size {string} and rotation {string} and quality {string}")
     public void fetchIIIFImage(String format, String objectId, String region, String size, String rotation, String quality) {
         String url = String.format("%s/%s/%s/%s/%s/%s.%s",
-                baseUrl, objectId, region, size, rotation, quality, format);
+                RestAssured.baseURI, objectId, region, size, rotation, quality, format);
+
         logger.info("Requesting IIIF Image URL: {}", url);
 
         Response response = RestAssured
@@ -44,30 +50,19 @@ public class IiifImageApiSteps {
         responseHolder.setResponse(response);
     }
 
-    @Then("it should include width in pixels")
-    public void verifyWidthInPixels() {
+    @Then("It should include width and height in pixels")
+    public void verifyWidthAndHeightInPixels() {
         Response response = responseHolder.getResponse();
+
         Integer width = response.jsonPath().getInt("width");
+        Integer height = response.jsonPath().getInt("height");
+
         assertThat("Width should be present and greater than 0", width, notNullValue());
         assertThat(width, greaterThan(0));
-    }
-
-    @Then("it should include height in pixels")
-    public void verifyHeightInPixels() {
-        Response response = responseHolder.getResponse();
-        Integer height = response.jsonPath().getInt("height");
         assertThat("Height should be present and greater than 0", height, notNullValue());
         assertThat(height, greaterThan(0));
     }
 
-    @Then("the grayscale image validation is done when quality is {string}")
-    public void grayscaleImageValidationConditionally(String quality) {
-        if ("gray".equalsIgnoreCase(quality)) {
-            Response response = responseHolder.getResponse();
-            String contentType = response.getHeader("Content-Type");
-            assertThat(contentType, anyOf(containsString("image/jpeg"), containsString("image/png")));
-        }
-    }
 
     @Then("the content type should be {string}")
     public void verifyContentType(String expectedContentType) {
@@ -75,13 +70,6 @@ public class IiifImageApiSteps {
         String contentType = response.getHeader("Content-Type");
         assertThat("Content-Type header should be present", contentType, notNullValue());
         assertThat(contentType.toLowerCase(), containsString(expectedContentType.toLowerCase()));
-    }
-
-    @Then("the image should be grayscale")
-    public void verifyImageIsGrayscale() {
-        Response response = responseHolder.getResponse();
-        String contentType = response.getHeader("Content-Type");
-        assertThat(contentType, anyOf(containsString("image/jpeg"), containsString("image/png")));
     }
 }
 

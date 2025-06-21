@@ -1,6 +1,9 @@
 pipeline {
     agent any
 
+    environment {
+        PATH = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
+    }
     stages {
         stage('Checkout') {
             steps {
@@ -29,7 +32,8 @@ pipeline {
 
     post {
         always {
-            junit '**/target/surefire-reports/*.xml'
+            junit '**/target/cucumber-reports/*.xml'
+
         }
     }
 }

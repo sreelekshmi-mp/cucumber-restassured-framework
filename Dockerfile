@@ -4,5 +4,5 @@ WORKDIR /app
 
 COPY . /app
 
-# Default command to run tests
+# command to run tests
 CMD ["mvn", "clean", "test"]
