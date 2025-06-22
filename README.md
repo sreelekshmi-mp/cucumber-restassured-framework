@@ -12,15 +12,15 @@ The entire test suite is wrapped inside a Docker for easy setup and execution on
 | Content Negotiation API| [https://data.rijksmuseum.nl/docs/http/content-negotiation-arguments](https://data.rijksmuseum.nl/docs/http/content-negotiation-arguments) |
 
 
-## Features 
+## Features
 
-Behavior-driven tests using Cucumber feature files
-REST API validation with RestAssured
-JUnit 4 as the test runner
-Organized with a clear package structure (hooks, runners, steps, utils)
-Detailed feature files under src/test/resources/features
-Dockerized setup for simple builds & execution
-Jenkins CI/CD pipeline setup for automated builds and test runs (partially implemented)
+- Behavior-driven tests using Cucumber feature files
+- REST API validation with RestAssured
+- JUnit 4 as the test runner
+- Organized with a clear package structure (hooks, runners, steps, utils)
+- Detailed feature files under src/test/resources/features
+- Dockerized setup for simple builds & execution
+- Jenkins CI/CD pipeline setup for automated builds and test runs (partially implemented)
 
 
 ## Prerequisites
