@@ -3,13 +3,16 @@
 This repository contains a Cucumber + RestAssured + JUnit test automation framework designed to validate the Rijksmuseum APIs.  
 The entire test suite is wrapped inside a Docker for easy setup and execution on any machine with Docker installed.
 
-# APIs Under Test
+## APIs Under Test
 
-Search API - https://data.rijksmuseum.nl/docs/search
-IIIF Image API - https://data.rijksmuseum.nl/docs/iiif/image
-Content Negotiation API - https://data.rijksmuseum.nl/docs/http/content-negotiation-arguments
+| API Name               | Documentation Link                                                  |
+|-----------------------|--------------------------------------------------------------------|
+| Search API            | [https://data.rijksmuseum.nl/docs/search](https://data.rijksmuseum.nl/docs/search)                   |
+| IIIF Image API        | [https://data.rijksmuseum.nl/docs/iiif/image](https://data.rijksmuseum.nl/docs/iiif/image)           |
+| Content Negotiation API| [https://data.rijksmuseum.nl/docs/http/content-negotiation-arguments](https://data.rijksmuseum.nl/docs/http/content-negotiation-arguments) |
 
-# Features 
+
+## Features 
 
 Behavior-driven tests using Cucumber feature files
 REST API validation with RestAssured
@@ -20,14 +23,14 @@ Dockerized setup for simple builds & execution
 Jenkins CI/CD pipeline setup for automated builds and test runs (partially implemented)
 
 
-# Prerequisites
+## Prerequisites
 
 Docker installed and running
 
 
-# Getting Started
+## Getting Started
 
-## Follow these steps to clone the repository and run the API tests using Docker.
+### Follow these steps to clone the repository and run the API tests using Docker.
 
 1. Clone the repository
 
@@ -45,6 +48,7 @@ Docker installed and running
 # Reports
 Test reports will be generated in the target/cucumber-reports directory within the container including:
 
-cucumber.xml - Detailed XML report.
-cucumber.json - JSON format report.
-cucumber-html - user-friendly HTML report for easy viewing in a browser. 
+- **cucumber.xml** — Detailed XML report.
+- **cucumber.json** — JSON format report.
+- **cucumber-html** — User-friendly HTML report for easy viewing in a browser.
+
