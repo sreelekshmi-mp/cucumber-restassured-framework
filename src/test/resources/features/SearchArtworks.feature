@@ -1,3 +1,4 @@
+@search @alltests
 Feature: Rijksmuseum Search API Validation with Scenario Outlines
 
   Background:

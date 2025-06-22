@@ -14,7 +14,8 @@ import io.cucumber.junit.CucumberOptions;
                 "html:target/cucumber-reports/cucumber.html",
                 "junit:target/cucumber-reports/cucumber.xml"
         },
-        monochrome = true
+        monochrome = true,
+        tags = "@alltests"
 )
 public class RunCucumberTest {
 }

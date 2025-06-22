@@ -1,3 +1,4 @@
+@image @alltests
 Feature: Rijksmuseum IIIF Image Metadata and Transformation
 
   Background:

@@ -1,3 +1,4 @@
+@@contentNegotiation @alltests
 Feature: Rijksmuseum Content Negotiation with Query String Arguments
 
   Background:
