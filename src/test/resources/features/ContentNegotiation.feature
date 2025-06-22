@@ -17,7 +17,7 @@ Feature: Rijksmuseum Content Negotiation with Query String Arguments
     | 200100988 | schema      | application/ld+json     | la,la-framed,oai_dc,edm    |
 
 
-  Scenario Outline: Resolver returns expected profile, media type, and relation in the Link header
+  Scenario Outline: Resolver returns expected profile, media type, and relation in the link header
     When I send a GET request for object ID "200107928" with query parameter _profile="<profile>" and optional media type "<mediaType>"
     Then the response status should be 200
     And the response link header should contain "profile token" "<profile>"
@@ -32,7 +32,7 @@ Feature: Rijksmuseum Content Negotiation with Query String Arguments
       | oai_dc     | application/rdf+xml     | alternate |
       | edm        | application/rdf+xml     | alternate |
 
-  Scenario Outline: No profile or media type returns default profile and media type with Link header
+  Scenario Outline: No profile or media type returns default profile and media type with link header
     When I send a GET request for object ID ""
     Then the response status should be 200
     And the response Content-Type should match "application/json"

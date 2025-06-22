@@ -1,4 +1,4 @@
-package com.rijksmuseum.stepdefinitions;
+package com.rijksmuseum.steps;
 
 import com.rijksmuseum.utils.ApiResponseValidator;
 import com.rijksmuseum.utils.ResponseHolder;

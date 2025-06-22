@@ -1,4 +1,4 @@
-package com.rijksmuseum.stepdefinitions;
+package com.rijksmuseum.steps;
 
 import io.cucumber.java.en.*;
 import io.restassured.RestAssured;
