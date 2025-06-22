@@ -34,8 +34,8 @@ Docker installed and running
 
 1. Clone the repository
 
-* git clone https://github.com/sreelekshmi-mp/ing-qa-assignment.git
-* cd ing-qa-assignment
+* git clone https://github.com/sreelekshmi-mp/cucumber-restassured-framework.git
+* cd cucumber-restassured-framework
 
 2. Build the Docker image
 
